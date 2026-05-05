@@ -1,0 +1,2728 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TURING — Código. Lógica. Impacto.</title>
+<link rel="icon" type="image/png" href="uploads/turing-logo.png">
+<link rel="shortcut icon" type="image/png" href="uploads/turing-logo.png">
+<link rel="apple-touch-icon" href="uploads/turing-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root {
+  --bg:     #0A192F;
+  --bg2:    #112240;
+  --bg3:    #0d1f3c;
+  --aqua:   #64FFDA;
+  --aqua2:  #3ec9ac;
+  --text:   #CCD6F6;
+  --dim:    #8892B0;
+  --white:  #E6F1FF;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+  position: relative;
+}
+
+#matrix-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -3;
+  pointer-events: none;
+  opacity: 0.055;
+}
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  width: 34vw;
+  height: 34vw;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(80px);
+  opacity: 0.22;
+}
+body::before {
+  top: 8%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(100,255,218,0.16) 0%, transparent 68%);
+}
+body::after {
+  right: -10%;
+  bottom: 10%;
+  background: radial-gradient(circle, rgba(41,98,255,0.14) 0%, transparent 70%);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--aqua2); border-radius: 4px; }
+
+/* ── Typography ── */
+h1,h2,h3,h4 { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--white); }
+h1 { font-size: clamp(2.6rem, 6vw, 5rem); line-height: 1.05; letter-spacing: 0.02em; }
+h2 { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: 0.04em; }
+h3 { font-size: 1.4rem; letter-spacing: 0.06em; }
+
+/* ── Utilities ── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.aqua { color: var(--aqua); }
+.tag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--aqua);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.tag::before { content: '◈ '; }
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--aqua);
+  color: var(--bg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 14px 32px;
+  border: none; border-radius: 4px;
+  cursor: pointer; text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(100,255,218,0.35); }
+.btn-primary:hover::after { opacity: 0.06; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: transparent;
+  color: var(--aqua);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 600;
+  padding: 13px 32px;
+  border: 1.5px solid var(--aqua);
+  border-radius: 4px;
+  cursor: pointer; text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+}
+.btn-outline:hover {
+  background: rgba(100,255,218,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(100,255,218,0.15);
+}
+
+/* ══════════════════════════════════════
+   NAVBAR
+   ══════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 32px;
+  transition: all 0.3s ease;
+}
+nav.scrolled {
+  background: rgba(10,25,47,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(100,255,218,0.1);
+  padding-top: 0;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 72px;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none;
+}
+.nav-logo img { height: 56px; width: auto; filter: drop-shadow(0 0 14px rgba(100,255,218,0.45)); }
+.nav-logo-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--white); letter-spacing: 0.1em;
+}
+.nav-links {
+  display: flex; align-items: center; gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 14px; color: var(--dim);
+  text-decoration: none; letter-spacing: 0.06em;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute;
+  left: 0; bottom: -4px;
+  width: 0; height: 1.5px;
+  background: var(--aqua);
+  transition: width 0.25s ease;
+}
+.nav-links a:hover { color: var(--aqua); }
+.nav-links a:hover::after { width: 100%; }
+.nav-cta { font-size: 13px !important; padding: 9px 22px !important; }
+
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:4px; }
+.hamburger span { display:block; width:22px; height:2px; background:var(--text); border-radius:2px; transition:all 0.3s; }
+
+/* ══════════════════════════════════════
+   HERO
+   ══════════════════════════════════════ */
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding-top: 80px;
+}
+
+/* Animated circuit canvas */
+#circuit-canvas {
+  position: absolute; inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+/* Radial glow */
+.hero-glow {
+  position: absolute;
+  width: 800px; height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100,255,218,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  pointer-events: none;
+}
+.hero-glow2 {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30,80,180,0.15) 0%, transparent 70%);
+  bottom: 0; left: -100px;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px; align-items: center;
+  padding: 80px 0;
+}
+.hero-left > * { animation: fadeUpSoft 0.85s ease both; }
+.hero-left > *:nth-child(2) { animation-delay: 0.08s; }
+.hero-left > *:nth-child(3) { animation-delay: 0.16s; }
+.hero-left > *:nth-child(4) { animation-delay: 0.24s; }
+.hero-left > *:nth-child(5) { animation-delay: 0.32s; }
+.hero-left > *:nth-child(6) { animation-delay: 0.4s; }
+
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; color: var(--aqua);
+  letter-spacing: 0.4em;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 32px; height: 1.5px;
+  background: var(--aqua);
+}
+
+.hero-brand-logo {
+  margin-bottom: 20px;
+  display: inline-block;
+}
+.hero-brand-logo img {
+  height: 160px; width: auto;
+  filter: drop-shadow(0 0 32px rgba(100,255,218,0.4)) drop-shadow(0 0 80px rgba(30,100,200,0.3));
+  animation: float1 5s ease-in-out infinite;
+}
+
+.hero-title { margin-bottom: 24px; }
+.hero-title .highlight {
+  color: var(--aqua);
+  position: relative;
+  display: inline-block;
+}
+
+.hero-subtitle {
+  font-size: 17px; color: var(--dim);
+  max-width: 480px;
+  line-height: 1.75;
+  margin-bottom: 40px;
+}
+
+.hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+
+.hero-stats {
+  display: flex; gap: 40px; margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(100,255,218,0.1);
+}
+.stat-item { }
+.stat-num {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 2.2rem; font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+.stat-num span { color: var(--aqua); }
+.stat-label {
+  font-size: 12px; color: var(--dim);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+/* Hero visual — dashboard mockup */
+.hero-visual {
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  animation: fadeUpSoft 1s ease 0.2s both;
+}
+.hero-screen-wrap {
+  position: relative;
+  width: 460px;
+}
+.screen-halo {
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100,255,218,0.1) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.hero-browser {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(100,255,218,0.06);
+}
+.browser-bar {
+  background: #081527;
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(100,255,218,0.1);
+}
+.browser-url {
+  background: rgba(10,25,47,0.8);
+  border: 1px solid rgba(100,255,218,0.1);
+  border-radius: 4px;
+  padding: 4px 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--dim);
+  flex: 1; max-width: 220px; text-align: center; margin: 0 12px;
+}
+.browser-body {
+  display: flex; height: 260px;
+}
+/* sidebar */
+.mock-sidebar {
+  width: 48px; background: #060e1c;
+  border-right: 1px solid rgba(100,255,218,0.08);
+  display: flex; flex-direction: column;
+  align-items: center; padding: 14px 0; gap: 14px;
+}
+.mock-logo-mark {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--aqua); color: var(--bg);
+  font-family: 'Rajdhani',sans-serif; font-weight: 700; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.sidebar-item {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: rgba(100,255,218,0.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--dim);
+  cursor: pointer; transition: all 0.2s;
+}
+.sidebar-item.active { background: rgba(100,255,218,0.12); color: var(--aqua); }
+/* main area */
+.mock-main { flex: 1; padding: 16px 20px; overflow: hidden; }
+.mock-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.mock-title { font-family: 'Rajdhani',sans-serif; font-size: 16px; font-weight: 700; color: var(--white); }
+.mock-sub { font-size: 10px; color: var(--dim); margin-top: 1px; }
+.mock-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg,rgba(100,255,218,0.3),rgba(30,80,180,0.4));
+  border: 1.5px solid rgba(100,255,218,0.3);
+  font-family: 'Rajdhani',sans-serif; font-size: 11px; font-weight: 700;
+  color: var(--aqua); display: flex; align-items: center; justify-content: center;
+}
+.mock-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px;
+}
+.mock-stat {
+  background: rgba(10,25,47,0.7);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 8px; padding: 10px 12px;
+}
+.mock-stat-val { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--white); }
+.mock-stat-val.aqua { color: var(--aqua); }
+.mock-stat-label { font-size: 9px; color: var(--dim); margin-top: 2px; }
+.mock-chart { background: rgba(10,25,47,0.5); border-radius:8px; padding:12px 14px; }
+.chart-label { font-size:9px; color:var(--dim); margin-bottom:10px; letter-spacing:0.08em; }
+.chart-bars { display:flex; gap:6px; align-items:flex-end; height:60px; }
+.chart-bar {
+  flex:1; border-radius:3px 3px 0 0;
+  background: rgba(100,255,218,0.15);
+  transition: height 0.3s ease;
+}
+.chart-bar.active { background: var(--aqua); box-shadow: 0 0 10px rgba(100,255,218,0.4); }
+
+/* floating badges */
+.orb-badge {
+  position: absolute;
+  background: rgba(17,34,64,0.95);
+  border: 1px solid rgba(100,255,218,0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--aqua);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--aqua); animation: pulse 2s infinite; }
+.orb-badge.b1 { top: -14px; right: 20px; animation: float1 4s ease-in-out infinite; }
+.orb-badge.b2 { bottom: -14px; left: 20px; animation: float2 5s ease-in-out infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+@keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+@keyframes fadeUpSoft {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmerSweep {
+  0% { transform: translateX(-130%) skewX(-20deg); }
+  100% { transform: translateX(180%) skewX(-20deg); }
+}
+@keyframes pulseBorder {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(100,255,218,0.08); }
+  50% { box-shadow: 0 0 0 10px rgba(100,255,218,0); }
+}
+@keyframes codeDrift {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-34px); }
+  100% { transform: translateY(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.16; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+/* ══════════════════════════════════════
+   SECTION COMMONS
+   ══════════════════════════════════════ */
+section { padding: 100px 0; }
+.section-header { text-align: center; margin-bottom: 64px; }
+.section-header p {
+  font-size: 16px; color: var(--dim);
+  max-width: 540px; margin: 12px auto 0;
+  line-height: 1.8;
+}
+#process, #about, #pricing, #testimonials, #contact, #faq, #cta {
+  position: relative;
+  overflow: hidden;
+}
+#process .container,
+#about .container,
+#pricing .container,
+#testimonials .container,
+#contact .container,
+#faq .container,
+#cta .container {
+  position: relative;
+  z-index: 1;
+}
+.section-code-bg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  padding: 24px clamp(18px, 4vw, 48px);
+  pointer-events: none;
+  opacity: 0.18;
+  z-index: 0;
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.75) 16%, rgba(0,0,0,0.9) 84%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.75) 16%, rgba(0,0,0,0.9) 84%, transparent 100%);
+}
+.section-code-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(100,255,218,0.02), transparent 28%, transparent 72%, rgba(100,255,218,0.03)),
+    linear-gradient(90deg, transparent, rgba(100,255,218,0.03), transparent);
+}
+.code-column {
+  white-space: pre;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  color: rgba(100,255,218,0.42);
+  text-shadow: 0 0 12px rgba(100,255,218,0.08);
+  will-change: transform;
+}
+.code-column.alt {
+  color: rgba(130,170,255,0.28);
+}
+.section-orb {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  filter: blur(22px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.26;
+}
+.section-orb.left {
+  left: -120px;
+  bottom: -120px;
+  background: radial-gradient(circle, rgba(100,255,218,0.18) 0%, transparent 68%);
+  animation: float2 11s ease-in-out infinite;
+}
+.section-orb.right {
+  right: -120px;
+  top: -120px;
+  background: radial-gradient(circle, rgba(41,98,255,0.16) 0%, transparent 70%);
+  animation: float1 12s ease-in-out infinite;
+}
+.section-orb.center {
+  left: 50%;
+  top: 50%;
+  width: 460px;
+  height: 460px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(100,255,218,0.10) 0%, transparent 72%);
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+/* fade-in on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+/* ══════════════════════════════════════
+   TECH STACK MARQUEE
+   ══════════════════════════════════════ */
+#techstack { background: var(--bg3); padding: 48px 0; overflow: hidden; }
+.tech-marquee-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.tech-marquee-wrap::before,
+.tech-marquee-wrap::after {
+  content: '';
+  position: absolute; top:0; bottom:0; width:120px; z-index:2; pointer-events:none;
+}
+.tech-marquee-wrap::before { left:0; background: linear-gradient(to right, var(--bg3), transparent); }
+.tech-marquee-wrap::after  { right:0; background: linear-gradient(to left,  var(--bg3), transparent); }
+.tech-marquee {
+  display: flex; gap: 32px;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+.tech-marquee:hover { animation-play-state: paused; }
+@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.tech-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 8px;
+  padding: 10px 20px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  cursor: default;
+}
+.tech-item:hover {
+  border-color: rgba(100,255,218,0.3);
+  background: rgba(100,255,218,0.05);
+}
+.tech-item-dot { width:8px; height:8px; border-radius:50%; background:var(--aqua); opacity:0.6; }
+.tech-item span { font-family:'Space Mono',monospace; font-size:12px; color:var(--text); letter-spacing:0.05em; }
+
+/* ══════════════════════════════════════
+   FAQ
+   ══════════════════════════════════════ */
+#faq { background: var(--bg); }
+.faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.faq-item {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.25s ease, box-shadow 0.25s ease;
+}
+.faq-item.open { border-color: rgba(100,255,218,0.25); }
+.faq-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+}
+.faq-q {
+  width: 100%; background: none; border: none;
+  padding: 22px 28px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  cursor: pointer; text-align: left;
+}
+.faq-q-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 600;
+  color: var(--white);
+}
+.faq-icon {
+  width: 28px; height: 28px; flex-shrink:0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(100,255,218,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--aqua); font-size: 16px; font-weight: 300;
+  transition: all 0.25s;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(100,255,218,0.08); border-color: var(--aqua); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.25s ease;
+  padding: 0 28px;
+}
+.faq-item.open .faq-a { max-height: 200px; padding: 0 28px 22px; }
+.faq-a p { font-size: 14.5px; color: var(--dim); line-height: 1.8; }
+
+/* ══════════════════════════════════════
+   PROCESS
+   ══════════════════════════════════════ */
+#process { background: var(--bg3); }
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 0;
+  position: relative;
+}
+.process-steps::before {
+  content: '';
+  position: absolute;
+  top: 36px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(100,255,218,0.25) 20%, rgba(100,255,218,0.25) 80%, transparent);
+  pointer-events: none;
+}
+.process-step {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 0 20px;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+.process-step:hover { transform: translateY(-6px); }
+.step-num {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1.5px solid rgba(100,255,218,0.25);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+  position: relative; z-index: 1;
+  transition: all 0.3s;
+}
+.process-step:hover .step-num {
+  border-color: var(--aqua);
+  box-shadow: 0 0 24px rgba(100,255,218,0.2);
+  background: rgba(100,255,218,0.06);
+}
+.step-num svg { width: 26px; height: 26px; }
+.step-index {
+  position: absolute; top: -6px; right: -6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--aqua); color: var(--bg);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.process-step h3 { font-size: 1.05rem; margin-bottom: 10px; }
+.process-step p { font-size: 13.5px; color: var(--dim); line-height: 1.7; }
+
+@media (max-width: 768px) {
+  .process-steps { grid-template-columns: 1fr 1fr; gap: 40px; }
+  .process-steps::before { display: none; }
+}
+
+/* ══════════════════════════════════════
+   SERVICES
+   ══════════════════════════════════════ */
+#services { background: var(--bg); }
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.service-card {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 12px;
+  padding: 36px 32px;
+  position: relative; overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+.service-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(100,255,218,0.04) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.service-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+  transform: scaleX(0); transition: transform 0.4s ease;
+}
+.service-card:hover {
+  border-color: rgba(100,255,218,0.25);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(100,255,218,0.1);
+}
+.service-card:hover::before { opacity: 1; }
+.service-card:hover::after { transform: scaleX(1); }
+
+.service-icon {
+  width: 52px; height: 52px;
+  border-radius: 10px;
+  background: rgba(100,255,218,0.06);
+  border: 1px solid rgba(100,255,218,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+}
+.service-icon svg { width: 24px; height: 24px; }
+
+.service-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 12px;
+  color: var(--white);
+}
+.service-card p {
+  font-size: 14px; color: var(--dim);
+  line-height: 1.75;
+}
+.service-tag {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 20px;
+}
+.service-tag span {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--aqua);
+  background: rgba(100,255,218,0.06);
+  border: 1px solid rgba(100,255,218,0.15);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+/* ══════════════════════════════════════
+   ABOUT
+   ══════════════════════════════════════ */
+#about { background: var(--bg3); }
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+
+.about-visual {
+  position: relative;
+}
+.about-code-block {
+  background: #0d1b2e;
+  border: 1px solid rgba(100,255,218,0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.code-header {
+  background: #081527;
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid rgba(100,255,218,0.1);
+}
+.code-header-dot { width:10px;height:10px;border-radius:50%; }
+.code-body { padding: 24px 28px; }
+.code-line { display: flex; }
+.ln { color: #3d4f66; width: 24px; user-select: none; flex-shrink: 0; }
+.kw { color: #c792ea; }
+.fn { color: #82aaff; }
+.st { color: #c3e88d; }
+.cm { color: #546e7a; font-style: italic; }
+.aq { color: var(--aqua); }
+.tx { color: var(--text); }
+
+.about-floating {
+  position: absolute;
+  bottom: -20px; right: -20px;
+  background: rgba(17,34,64,0.95);
+  border: 1px solid rgba(100,255,218,0.2);
+  border-radius: 10px;
+  padding: 16px 20px;
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center; gap: 14px;
+}
+.about-floating-icon {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  background: rgba(100,255,218,0.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.af-label { font-size: 12px; color: var(--dim); }
+.af-value { font-family: 'Rajdhani',sans-serif; font-size: 22px; font-weight: 700; color: var(--white); }
+.af-value span { color: var(--aqua); }
+
+.about-text .tag { }
+.about-text h2 { margin-bottom: 20px; }
+.about-text p { color: var(--dim); line-height: 1.8; margin-bottom: 16px; }
+
+.tech-stack {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 28px;
+}
+.tech-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(100,255,218,0.12);
+  border-radius: 4px;
+  padding: 6px 12px;
+  transition: all 0.2s;
+}
+.tech-badge:hover {
+  color: var(--aqua);
+  border-color: rgba(100,255,218,0.35);
+  background: rgba(100,255,218,0.05);
+}
+
+/* ══════════════════════════════════════
+   PORTFOLIO
+   ══════════════════════════════════════ */
+#portfolio { background: var(--bg); }
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.portfolio-card {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.portfolio-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(100,255,218,0.08) 45%, transparent 55%);
+  transform: translateX(-130%) skewX(-20deg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.portfolio-card:hover {
+  border-color: rgba(100,255,218,0.2);
+  transform: translateY(-10px) scale(1.01);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.35), 0 0 0 1px rgba(100,255,218,0.12);
+}
+.portfolio-card:hover::before { opacity: 1; animation: shimmerSweep 1.15s ease; }
+
+.portfolio-thumb {
+  height: 200px;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.portfolio-thumb-inner {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: rgba(100,255,218,0.4);
+  letter-spacing: 0.1em;
+  position: relative;
+}
+.portfolio-thumb::after {
+  content: '';
+  position: absolute;
+  inset: auto -15% 0;
+  height: 70px;
+  background: linear-gradient(180deg, transparent 0%, rgba(100,255,218,0.10) 100%);
+  opacity: 0.75;
+}
+
+.portfolio-info { padding: 24px; }
+.portfolio-type {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--aqua);
+  letter-spacing: 0.25em;
+  margin-bottom: 8px;
+}
+.portfolio-info h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.portfolio-info p { font-size: 13px; color: var(--dim); line-height: 1.6; }
+
+/* Portfolio thumb visuals */
+.pt-saas { background: linear-gradient(135deg, #0d1f3c 0%, #0a192f 100%); }
+.pt-clinic { background: linear-gradient(135deg, #0a1e38 0%, #0d2545 100%); }
+.pt-ecom { background: linear-gradient(135deg, #071527 0%, #112240 100%); }
+.pt-app { background: linear-gradient(135deg, #0d1b2e 0%, #0a192f 100%); }
+.pt-dash { background: linear-gradient(135deg, #091523 0%, #112240 100%); }
+.pt-lp { background: linear-gradient(135deg, #0a1a30 0%, #0d2040 100%); }
+
+/* thumb placeholder pattern */
+.thumb-pattern {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(100,255,218,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,255,218,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.thumb-label {
+  position: relative; z-index: 1;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.thumb-icon {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: rgba(100,255,218,0.08);
+  border: 1px solid rgba(100,255,218,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+  animation: pulseBorder 3.2s ease-in-out infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.portfolio-card:hover .thumb-icon {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 26px rgba(100,255,218,0.16);
+}
+
+/* ══════════════════════════════════════
+   WHY TURING
+   ══════════════════════════════════════ */
+#why { background: var(--bg3); }
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 900px; margin: 0 auto;
+}
+
+.why-card {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex; gap: 20px;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+}
+.why-card:hover {
+  border-color: rgba(100,255,218,0.2);
+  background: rgba(17,34,64,0.8);
+  transform: translateY(-3px);
+}
+.why-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(100,255,218,0.06);
+  border: 1px solid rgba(100,255,218,0.18);
+  display: flex; align-items: center; justify-content: center;
+}
+.why-icon svg { width: 22px; height: 22px; }
+.why-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.why-card p { font-size: 13.5px; color: var(--dim); line-height: 1.7; }
+
+/* ══════════════════════════════════════
+   PRICING
+   ══════════════════════════════════════ */
+#pricing { background: var(--bg); }
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.pricing-card {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 14px;
+  padding: 36px 32px 40px;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(100,255,218,0.08), transparent 42%, rgba(41,98,255,0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.pricing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.3);
+}
+.pricing-card:hover::before { opacity: 1; }
+.pricing-card.featured {
+  background: linear-gradient(160deg, #132d52 0%, #0d2040 100%);
+  border-color: rgba(100,255,218,0.35);
+  box-shadow: 0 0 0 1px rgba(100,255,218,0.12), 0 32px 64px rgba(0,0,0,0.3);
+  transform: translateY(-8px) scale(1.02);
+}
+.pricing-card.featured:hover { transform: translateY(-14px) scale(1.02); }
+
+.pricing-badge {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  background: var(--aqua); color: var(--bg);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.2em;
+  padding: 4px 16px; border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pricing-tier {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--aqua);
+  letter-spacing: 0.3em; margin-bottom: 12px;
+}
+.pricing-card h3 { font-size: 1.5rem; margin-bottom: 8px; }
+.pricing-desc { font-size: 13.5px; color: var(--dim); margin-bottom: 28px; line-height: 1.6; }
+
+.pricing-price {
+  display: flex; align-items: flex-end; gap: 4px;
+  margin-bottom: 8px;
+}
+.price-from { font-size: 12px; color: var(--dim); margin-bottom: 4px; }
+.price-val {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 3rem; font-weight: 700; color: var(--white); line-height: 1;
+}
+.price-val.aqua { color: var(--aqua); }
+.price-suffix { font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.pricing-divider {
+  height: 1px;
+  background: rgba(100,255,218,0.1);
+  margin: 24px 0;
+}
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.pricing-features li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--text);
+}
+.pricing-features li::before {
+  content: '✓';
+  color: var(--aqua);
+  font-weight: 700; flex-shrink: 0;
+  margin-top: 1px;
+}
+.pricing-features li.off { color: var(--dim); }
+.pricing-features li.off::before { content: '—'; color: var(--dim); font-weight: 400; }
+
+.pricing-cta {
+  display: block; text-align: center;
+  padding: 13px; border-radius: 6px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none; letter-spacing: 0.04em;
+  transition: all 0.25s;
+}
+.pricing-cta.outline {
+  border: 1.5px solid rgba(100,255,218,0.25); color: var(--aqua);
+}
+.pricing-cta.outline:hover {
+  border-color: var(--aqua); background: rgba(100,255,218,0.06);
+  transform: translateY(-2px);
+}
+.pricing-cta.solid {
+  background: var(--aqua); color: var(--bg);
+}
+.pricing-cta.solid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(100,255,218,0.35);
+}
+
+/* ══════════════════════════════════════
+   TESTIMONIALS
+   ══════════════════════════════════════ */
+#testimonials { background: var(--bg3); }
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.testi-card {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.08);
+  border-radius: 12px;
+  padding: 32px;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.testi-card::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+  transform: scaleX(0.3);
+  opacity: 0.3;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+.testi-card:hover {
+  border-color: rgba(100,255,218,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+}
+.testi-card:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+.testi-quote {
+  font-size: 2.5rem; color: var(--aqua);
+  font-family: 'Rajdhani', sans-serif;
+  line-height: 1; margin-bottom: 16px;
+  opacity: 0.6;
+}
+.testi-text {
+  font-size: 14.5px; color: var(--text);
+  line-height: 1.8; margin-bottom: 24px;
+  font-style: italic;
+}
+.testi-author { display: flex; align-items: center; gap: 14px; }
+.testi-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(100,255,218,0.2), rgba(30,80,180,0.3));
+  border: 1.5px solid rgba(100,255,218,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--aqua);
+  flex-shrink: 0;
+}
+.testi-name { font-weight: 600; font-size: 14px; color: var(--white); }
+.testi-role { font-size: 12px; color: var(--dim); margin-top: 2px; }
+.testi-stars {
+  display: flex; gap: 3px; margin-bottom: 14px;
+}
+.star { color: var(--aqua); font-size: 13px; }
+
+/* ══════════════════════════════════════
+   CONTACT FORM
+   ══════════════════════════════════════ */
+#contact { background: var(--bg); }
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 72px;
+  align-items: start;
+}
+
+.contact-info .tag { }
+.contact-info h2 { margin-bottom: 16px; }
+.contact-info p { font-size: 16px; color: var(--dim); line-height: 1.8; margin-bottom: 36px; }
+
+.contact-items { display: flex; flex-direction: column; gap: 20px; }
+.contact-item {
+  display: flex; align-items: center; gap: 16px;
+  transition: transform 0.3s ease;
+}
+.contact-item:hover { transform: translateX(6px); }
+.contact-item-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(100,255,218,0.06);
+  border: 1px solid rgba(100,255,218,0.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.contact-item-icon svg { width: 18px; height: 18px; }
+.contact-item-label { font-size: 11px; color: var(--dim); letter-spacing: 0.1em; }
+.contact-item-value { font-size: 14px; color: var(--text); font-weight: 500; margin-top: 2px; }
+
+.contact-form {
+  background: var(--bg2);
+  border: 1px solid rgba(100,255,218,0.1);
+  border-radius: 14px;
+  padding: 40px 36px;
+  position: relative;
+  overflow: hidden;
+}
+.contact-form::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(100,255,218,0.06), transparent 45%, rgba(41,98,255,0.06));
+  pointer-events: none;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.form-group label {
+  font-size: 12px; font-weight: 500;
+  color: var(--dim); letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(10,25,47,0.8);
+  border: 1px solid rgba(100,255,218,0.12);
+  border-radius: 6px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder { color: var(--dim); opacity: 0.6; }
+.form-group select { cursor: pointer; appearance: none; }
+.form-group select option { background: var(--bg2); }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: rgba(100,255,218,0.4);
+  box-shadow: 0 0 0 3px rgba(100,255,218,0.06);
+}
+.form-group textarea { resize: vertical; min-height: 120px; }
+.form-submit {
+  width: 100%;
+  padding: 15px;
+  background: var(--aqua);
+  color: var(--bg);
+  border: none; border-radius: 6px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.form-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(100,255,218,0.35);
+}
+.form-submit:active { transform: translateY(0); }
+.form-success {
+  display: none;
+  text-align: center; padding: 32px 0;
+}
+.form-success-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(100,255,218,0.1);
+  border: 2px solid var(--aqua);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 28px;
+}
+.form-success h3 { margin-bottom: 8px; }
+.form-success p { color: var(--dim); font-size: 14px; }
+
+@media (max-width: 1024px) {
+  .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+  .pricing-card.featured { transform: none; }
+  .testimonials-grid { grid-template-columns: 1fr; max-width: 540px; margin: 0 auto; }
+  .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+  .section-code-bg { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .form-row { grid-template-columns: 1fr; }
+  .contact-form { padding: 28px 22px; }
+  .section-code-bg { grid-template-columns: repeat(2, 1fr); gap: 12px; opacity: 0.12; }
+  .code-column { font-size: 10px; line-height: 1.55; }
+  .section-orb { opacity: 0.18; }
+}
+
+/* ══════════════════════════════════════
+   CTA
+   ══════════════════════════════════════ */
+#cta {
+  background: var(--bg);
+  position: relative; overflow: hidden;
+}
+.cta-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100,255,218,0.06) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.cta-inner {
+  position: relative; z-index: 1;
+  text-align: center;
+  max-width: 700px; margin: 0 auto;
+}
+.cta-inner h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 20px; }
+.cta-inner p { font-size: 17px; color: var(--dim); margin-bottom: 40px; line-height: 1.8; }
+.cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* ══════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════ */
+footer {
+  background: #060e1c;
+  border-top: 1px solid rgba(100,255,218,0.08);
+  padding: 60px 0 32px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+.footer-brand img { height: 42px; margin-bottom: 16px; filter: drop-shadow(0 0 8px rgba(100,255,218,0.25)); }
+.footer-brand-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--white); letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.footer-brand p { font-size: 13px; color: var(--dim); line-height: 1.75; max-width: 260px; }
+.footer-social {
+  display: flex; gap: 12px; margin-top: 20px;
+}
+.social-btn {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  background: rgba(100,255,218,0.05);
+  border: 1px solid rgba(100,255,218,0.12);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s;
+  color: var(--dim);
+}
+.social-btn:hover {
+  background: rgba(100,255,218,0.1);
+  border-color: var(--aqua);
+  color: var(--aqua);
+  transform: translateY(-2px);
+}
+.footer-col h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--white); letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul a {
+  font-size: 13px; color: var(--dim);
+  text-decoration: none; transition: color 0.2s;
+}
+.footer-col ul a:hover { color: var(--aqua); }
+.footer-bottom {
+  border-top: 1px solid rgba(100,255,218,0.06);
+  padding-top: 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-bottom p { font-size: 12px; color: var(--dim); }
+.footer-bottom .aqua { font-family: 'Space Mono', monospace; }
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+  .about-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-content { grid-template-columns: 1fr; gap: 48px; text-align: center; }
+  .hero-subtitle { margin-left: auto; margin-right: auto; }
+  .hero-btns { justify-content: center; }
+  .hero-stats { justify-content: center; }
+  .hero-eyebrow { justify-content: center; }
+  .hero-visual { display: none; }  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .why-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  section { padding: 72px 0; }
+  h1 { font-size: 2.4rem; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .hero-stats { flex-wrap: wrap; gap: 24px; }
+}
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(6,14,28,0.98);
+  backdrop-filter: blur(16px);
+  z-index: 99;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 32px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 2rem; font-weight: 700;
+  color: var(--white); text-decoration: none;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover { color: var(--aqua); }
+.mobile-close {
+  position: absolute; top: 24px; right: 28px;
+  background: none; border: none; cursor: pointer;
+  font-size: 28px; color: var(--dim);
+  transition: color 0.2s;
+}
+.mobile-close:hover { color: var(--aqua); }
+
+/* ── Flying </> tags ── */
+.fly-tag {
+  position: fixed;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(1rem, 2vw, 1.55rem);
+  font-weight: 700;
+  color: #a0f0ff;
+  text-shadow:
+    0 0 6px #64FFDA,
+    0 0 16px #64FFDA,
+    0 0 36px rgba(100,255,218,0.7),
+    0 0 70px rgba(100,255,218,0.3);
+  pointer-events: none;
+  z-index: 5;
+  user-select: none;
+  opacity: 0.65;
+  will-change: transform;
+  letter-spacing: -0.04em;
+}
+.fly-1 { top: 18%; left: 4%; }
+.fly-2 { top: 20%; right: 5%; }
+.fly-3 { bottom: 22%; left: 5%; }
+.fly-4 { bottom: 18%; right: 4%; }
+</style>
+</head>
+<body>
+<canvas id="matrix-bg"></canvas>
+<span class="fly-tag fly-1">&lt;/&gt;</span>
+<span class="fly-tag fly-2">&lt;/&gt;</span>
+<span class="fly-tag fly-3">&lt;/&gt;</span>
+<span class="fly-tag fly-4">&lt;/&gt;</span>
+
+<!-- ══ NAVBAR ══ -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <img src="uploads/turing-logo-transparent.png" alt="Turing">
+    </a>
+    <ul class="nav-links">
+      <li><a href="#process">Processo</a></li>
+      <li><a href="#services">Serviços</a></li>
+      <li><a href="#portfolio">Portfólio</a></li>
+      <li><a href="#pricing">Planos</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#contact" class="btn-primary nav-cta">Orçamento</a></li>
+    </ul>
+    <button class="hamburger" id="ham" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="#services" class="mm-link">Serviços</a>
+  <a href="#about" class="mm-link">Sobre</a>
+  <a href="#portfolio" class="mm-link">Portfólio</a>
+  <a href="#why" class="mm-link">Por que nós</a>
+  <a href="#pricing" class="mm-link">Planos</a>
+  <a href="#contact" class="btn-primary mm-link">Solicitar Orçamento</a>
+</div>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <canvas id="circuit-canvas"></canvas>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-eyebrow">TURING TECNOLOGIA · EST. 2024</div>
+        <div class="hero-brand-logo">
+          <img src="uploads/turing-logo-transparent.png" alt="Turing Logo">
+        </div>
+        <h1 class="hero-title">
+          Construindo sistemas<br>que <span class="highlight">escalam</span><br>negócios.
+        </h1>
+        <p class="hero-subtitle">
+          Desenvolvemos sites, plataformas SaaS e aplicativos mobile sob medida — com tecnologia de ponta, performance máxima e foco absoluto no seu resultado.
+        </p>
+        <div class="hero-btns">
+          <a href="#cta" class="btn-primary">Solicitar orçamento →</a>
+          <a href="#portfolio" class="btn-outline">Ver projetos</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-num">30<span>+</span></div>
+            <div class="stat-label">Projetos entregues</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">100<span>%</span></div>
+            <div class="stat-label">Satisfação</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">48<span>h</span></div>
+            <div class="stat-label">Resposta rápida</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-screen-wrap">
+          <!-- Glow halo behind -->
+          <div class="screen-halo"></div>
+          <!-- Mock browser window -->
+          <div class="hero-browser">
+            <div class="browser-bar">
+              <div style="display:flex;gap:6px;align-items:center">
+                <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;opacity:.7"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;opacity:.7"></div>
+                <div style="width:10px;height:10px;border-radius:50%;background:#28c840;opacity:.7"></div>
+              </div>
+              <div class="browser-url">
+                <span style="color:var(--aqua);margin-right:4px">🔒</span>
+                <span>turing.dev/dashboard</span>
+              </div>
+              <div style="width:48px"></div>
+            </div>
+            <div class="browser-body">
+              <!-- Sidebar -->
+              <div class="mock-sidebar">
+                <div class="mock-logo-mark">T</div>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+                  {['▣','◈','⊞','◉','⊟'].map((ic,i) => (
+                  <div class="sidebar-item" style="opacity:${i===0?1:0.35};color:${i===0?'var(--aqua)':'var(--dim)'}">⊞</div>
+                  ))}
+                </div>
+                <div class="sidebar-item active">▣</div>
+                <div class="sidebar-item">◈</div>
+                <div class="sidebar-item">⊞</div>
+                <div class="sidebar-item">◉</div>
+              </div>
+              <!-- Main content -->
+              <div class="mock-main">
+                <div class="mock-header">
+                  <div>
+                    <div class="mock-title">Dashboard</div>
+                    <div class="mock-sub">Bem-vindo de volta</div>
+                  </div>
+                  <div class="mock-avatar">VC</div>
+                </div>
+                <!-- Stats row -->
+                <div class="mock-stats">
+                  <div class="mock-stat">
+                    <div class="mock-stat-val aqua">R$48k</div>
+                    <div class="mock-stat-label">Receita</div>
+                  </div>
+                  <div class="mock-stat">
+                    <div class="mock-stat-val">1.240</div>
+                    <div class="mock-stat-label">Usuários</div>
+                  </div>
+                  <div class="mock-stat">
+                    <div class="mock-stat-val">98%</div>
+                    <div class="mock-stat-label">Uptime</div>
+                  </div>
+                </div>
+                <!-- Chart bars -->
+                <div class="mock-chart">
+                  <div class="chart-label">Crescimento mensal</div>
+                  <div class="chart-bars">
+                    <div class="chart-bar" style="height:40%"></div>
+                    <div class="chart-bar" style="height:55%"></div>
+                    <div class="chart-bar" style="height:45%"></div>
+                    <div class="chart-bar" style="height:70%"></div>
+                    <div class="chart-bar" style="height:60%"></div>
+                    <div class="chart-bar active" style="height:85%"></div>
+                    <div class="chart-bar" style="height:75%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Floating badges -->
+          <div class="orb-badge b1"><div class="badge-dot"></div>Deploy realizado</div>
+          <div class="orb-badge b2"><div class="badge-dot" style="background:#82aaff"></div>+127 usuários hoje</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TECH STACK ══ -->
+<section id="techstack">
+  <div class="tech-marquee-wrap">
+    <div class="tech-marquee" id="marquee">
+      <!-- duplicated for seamless loop -->
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROCESS ══ -->
+<section id="process">
+  <div class="section-code-bg" data-code-bg="process"></div>
+  <div class="section-orb left"></div>
+  <div class="section-orb right"></div>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Como trabalhamos</div>
+      <h2>Do conceito ao <span class="aqua">Deploy</span></h2>
+      <p>Um processo transparente e eficiente, do primeiro contato até o sistema no ar.</p>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal reveal-delay-1">
+        <div class="step-num">
+          <div class="step-index">01</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+        </div>
+        <h3>Discovery</h3>
+        <p>Entendemos seu negócio, mapeamos requisitos e definimos o escopo com clareza total.</p>
+      </div>
+      <div class="process-step reveal reveal-delay-2">
+        <div class="step-num">
+          <div class="step-index">02</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 00-2 2v3M21 21v.01M12 7v3m0 0v3m0-3H9m3 0h3"/>
+          </svg>
+        </div>
+        <h3>Design & Arquitetura</h3>
+        <p>Criamos o protótipo visual e a arquitetura técnica antes de escrever a primeira linha.</p>
+      </div>
+      <div class="process-step reveal reveal-delay-3">
+        <div class="step-num">
+          <div class="step-index">03</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <h3>Desenvolvimento</h3>
+        <p>Sprint a sprint, entregamos versões funcionais com atualizações constantes para você acompanhar.</p>
+      </div>
+      <div class="process-step reveal reveal-delay-4">
+        <div class="step-num">
+          <div class="step-index">04</div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <h3>Deploy & Suporte</h3>
+        <p>Publicamos com CI/CD, monitoramento ativo e suporte garantido no pós-entrega.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SERVICES ══ -->
+<section id="services">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">O que fazemos</div>
+      <h2>Nossos <span class="aqua">Serviços</span></h2>
+      <p>Da ideia ao deploy — entregamos soluções digitais completas para negócios que querem crescer com tecnologia.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal reveal-delay-1">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+          </svg>
+        </div>
+        <h3>Criação de Sites</h3>
+        <p>Sites institucionais, landing pages e portfólios de alto impacto — rápidos, responsivos e otimizados para converter.</p>
+        <div class="service-tag">
+          <span>Next.js</span><span>React</span><span>SEO</span><span>CMS</span>
+        </div>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3>Desenvolvimento SaaS</h3>
+        <p>Plataformas escaláveis com autenticação, painel admin, assinaturas e integrações — prontas para crescer com você.</p>
+        <div class="service-tag">
+          <span>Node.js</span><span>PostgreSQL</span><span>API REST</span><span>Auth</span>
+        </div>
+      </div>
+      <div class="service-card reveal reveal-delay-3">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>
+          </svg>
+        </div>
+        <h3>Apps Mobile</h3>
+        <p>Aplicativos iOS e Android com UX premium, performance nativa e integração total ao seu ecossistema digital.</p>
+        <div class="service-tag">
+          <span>React Native</span><span>Expo</span><span>iOS</span><span>Android</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ABOUT ══ -->
+<section id="about">
+  <div class="section-code-bg" data-code-bg="about"></div>
+  <div class="section-orb center"></div>
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="about-code-block">
+          <div class="code-header">
+            <div class="code-header-dot" style="background:#ff5f57"></div>
+            <div class="code-header-dot" style="background:#ffbd2e"></div>
+            <div class="code-header-dot" style="background:#28c840"></div>
+            <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);margin-left:8px">turing.ts</span>
+          </div>
+          <div class="code-body">
+            <div class="code-line"><span class="ln">1</span><span class="cm"> // Engenharia de alto nível</span></div>
+            <div class="code-line"><span class="ln">2</span><span class="kw">const </span><span class="fn">turing</span><span class="tx"> = {</span></div>
+            <div class="code-line"><span class="ln">3</span><span class="tx">  missão: </span><span class="st">"escalar negócios"</span><span class="tx">,</span></div>
+            <div class="code-line"><span class="ln">4</span><span class="tx">  stack: [</span><span class="st">"React"</span><span class="tx">, </span><span class="st">"Node"</span><span class="tx">, </span><span class="st">"TS"</span><span class="tx">],</span></div>
+            <div class="code-line"><span class="ln">5</span><span class="tx">  entrega: </span><span class="aq">true</span><span class="tx">,</span></div>
+            <div class="code-line"><span class="ln">6</span><span class="tx">  performance: </span><span class="aq">99.9</span><span class="tx">,</span></div>
+            <div class="code-line"><span class="ln">7</span><span class="tx">  clientes: </span><span class="aq">satisfeitos</span><span class="tx">,</span></div>
+            <div class="code-line"><span class="ln">8</span><span class="tx">};</span></div>
+            <div class="code-line" style="margin-top:8px"><span class="ln">9</span><span class="kw">export default </span><span class="fn">turing</span><span class="tx">;</span></div>
+          </div>
+        </div>
+        <div class="about-floating">
+          <div class="about-floating-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="af-label">Uptime garantido</div>
+            <div class="af-value"><span>99.9</span>%</div>
+          </div>
+        </div>
+      </div>
+      <div class="about-text reveal reveal-delay-2">
+        <div class="tag">Quem somos</div>
+        <h2>Engenharia de<br><span class="aqua">Elite Digital</span></h2>
+        <p>Somos uma equipe de Engenharia de Software e ADS com foco em construir produtos digitais que realmente funcionam — escaláveis, rápidos e bem projetados.</p>
+        <p>Nossa referência é Alan Turing: não nos contentamos com o mediano. Cada linha de código é escrita com intenção, precisão e visão de produto.</p>
+        <div class="tech-stack">
+          <span class="tech-badge">React</span>
+          <span class="tech-badge">Next.js</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">Node.js</span>
+          <span class="tech-badge">PostgreSQL</span>
+          <span class="tech-badge">React Native</span>
+          <span class="tech-badge">Tailwind</span>
+          <span class="tech-badge">Docker</span>
+          <span class="tech-badge">AWS</span>
+          <span class="tech-badge">Stripe</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PORTFOLIO ══ -->
+<section id="portfolio">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Nosso trabalho</div>
+      <h2>Projetos <span class="aqua">Entregues</span></h2>
+      <p>Cada projeto é único. Veja alguns sistemas que construímos para clientes reais.</p>
+    </div>
+    <div class="portfolio-grid">
+      <!-- Card 1 -->
+      <div class="portfolio-card reveal reveal-delay-1">
+        <div class="portfolio-thumb pt-saas">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span>Plataforma SaaS</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">SaaS · Gestão</div>
+          <h3>Sistema de Agendamento</h3>
+          <p>Plataforma completa para clínicas com agendamento online, prontuário e cobrança automatizada.</p>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="portfolio-card reveal reveal-delay-2">
+        <div class="portfolio-thumb pt-ecom">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+            </div>
+            <span>E-commerce</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">Site · E-commerce</div>
+          <h3>Loja de Moda Premium</h3>
+          <p>E-commerce de alto padrão com checkout integrado, painel de pedidos e analytics em tempo real.</p>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="portfolio-card reveal reveal-delay-3">
+        <div class="portfolio-thumb pt-app">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>
+              </svg>
+            </div>
+            <span>App Mobile</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">App · iOS & Android</div>
+          <h3>App de Delivery Local</h3>
+          <p>Aplicativo para rede de restaurantes com pedidos em tempo real, rastreamento e fidelidade.</p>
+        </div>
+      </div>
+      <!-- Card 4 -->
+      <div class="portfolio-card reveal reveal-delay-1">
+        <div class="portfolio-thumb pt-dash">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 17h7M17 14v7"/>
+              </svg>
+            </div>
+            <span>Dashboard</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">SaaS · Analytics</div>
+          <h3>Dashboard Financeiro</h3>
+          <p>Painel de controle para escritório de contabilidade com relatórios, DRE e exportação automática.</p>
+        </div>
+      </div>
+      <!-- Card 5 -->
+      <div class="portfolio-card reveal reveal-delay-2">
+        <div class="portfolio-thumb pt-clinic">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <span>Site Institucional</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">Site · Institucional</div>
+          <h3>Clínica Odontológica</h3>
+          <p>Site premium com agendamento integrado, SEO local e conversão de novos pacientes.</p>
+        </div>
+      </div>
+      <!-- Card 6 -->
+      <div class="portfolio-card reveal reveal-delay-3">
+        <div class="portfolio-thumb pt-lp">
+          <div class="thumb-pattern"></div>
+          <div class="thumb-label">
+            <div class="thumb-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <span>Landing Page</span>
+          </div>
+        </div>
+        <div class="portfolio-info">
+          <div class="portfolio-type">Site · Conversão</div>
+          <h3>Landing Page SaaS B2B</h3>
+          <p>Página de alta conversão para produto SaaS com demo interativa e formulário qualificado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WHY TURING ══ -->
+<section id="why">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Diferenciais</div>
+      <h2>Por que escolher a <span class="aqua">TURING</span>?</h2>
+      <p>Não somos mais uma agência. Somos engenheiros que entendem negócio.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card reveal reveal-delay-1">
+        <div class="why-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Velocidade de entrega</h3>
+          <p>Processos ágeis e comunicação direta. Sem burocracia, sem atraso. Seu projeto no prazo combinado.</p>
+        </div>
+      </div>
+      <div class="why-card reveal reveal-delay-2">
+        <div class="why-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Tecnologias modernas</h3>
+          <p>React, Next.js, TypeScript, Node.js — o que há de mais atual no mercado, com código limpo e bem documentado.</p>
+        </div>
+      </div>
+      <div class="why-card reveal reveal-delay-3">
+        <div class="why-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Sistemas escaláveis</h3>
+          <p>Arquitetura pensada para crescer. Do MVP ao enterprise — seus sistemas suportam o crescimento do seu negócio.</p>
+        </div>
+      </div>
+      <div class="why-card reveal reveal-delay-4">
+        <div class="why-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Foco no resultado</h3>
+          <p>Código bonito não paga boleto — nosso foco é no retorno real: mais vendas, mais clientes, mais receita para você.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ══ -->
+<section id="pricing">
+  <div class="section-code-bg" data-code-bg="pricing"></div>
+  <div class="section-orb right"></div>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Investimento</div>
+      <h2>Planos <span class="aqua">Transparentes</span></h2>
+      <p>Sem surpresas, sem letras miúdas. Escolha o plano ideal para o momento do seu negócio.</p>
+    </div>
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="pricing-card reveal reveal-delay-1">
+        <div class="pricing-tier">STARTER</div>
+        <h3>Presença Digital</h3>
+        <p class="pricing-desc">Ideal para negócios que precisam de uma presença online profissional e de impacto.</p>
+        <div class="price-from">a partir de</div>
+        <div class="pricing-price">
+          <span class="price-val">R$1.500</span>
+        </div>
+        <div class="price-suffix">pagamento único · entrega em 10 dias</div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features">
+          <li>Site institucional responsivo</li>
+          <li>Até 5 seções / páginas</li>
+          <li>Formulário de contato</li>
+          <li>SEO básico configurado</li>
+          <li>Integração WhatsApp</li>
+          <li class="off">Painel de administração</li>
+          <li class="off">Sistema de agendamento</li>
+          <li class="off">Suporte prioritário</li>
+        </ul>
+        <a href="#contact" class="pricing-cta outline">Solicitar orçamento</a>
+      </div>
+      <!-- Pro -->
+      <div class="pricing-card featured reveal reveal-delay-2">
+        <div class="pricing-badge">MAIS POPULAR</div>
+        <div class="pricing-tier">PRO</div>
+        <h3>Sistema Completo</h3>
+        <p class="pricing-desc">Para empresas que precisam de uma plataforma robusta com painel e funcionalidades avançadas.</p>
+        <div class="price-from">a partir de</div>
+        <div class="pricing-price">
+          <span class="price-val aqua">R$4.500</span>
+        </div>
+        <div class="price-suffix">pagamento parcelado · entrega em 30 dias</div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features">
+          <li>Tudo do plano Starter</li>
+          <li>Painel administrativo</li>
+          <li>Sistema de agendamento</li>
+          <li>Autenticação de usuários</li>
+          <li>Integração de pagamento</li>
+          <li>Dashboard com métricas</li>
+          <li>Suporte prioritário 30 dias</li>
+          <li class="off">App mobile nativo</li>
+        </ul>
+        <a href="#contact" class="pricing-cta solid">Quero este plano</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="pricing-card reveal reveal-delay-3">
+        <div class="pricing-tier">ENTERPRISE</div>
+        <h3>SaaS & Apps</h3>
+        <p class="pricing-desc">Para negócios que precisam de uma solução completa: SaaS, app mobile e infraestrutura escalável.</p>
+        <div class="price-from">sob consulta</div>
+        <div class="pricing-price">
+          <span class="price-val">Custom</span>
+        </div>
+        <div class="price-suffix">proposta personalizada · prazo sob análise</div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features">
+          <li>Tudo do plano Pro</li>
+          <li>App iOS + Android</li>
+          <li>Arquitetura cloud (AWS)</li>
+          <li>CI/CD configurado</li>
+          <li>Multi-tenant / white-label</li>
+          <li>SLA garantido em contrato</li>
+          <li>Suporte dedicado 90 dias</li>
+          <li>Reuniões de acompanhamento</li>
+        </ul>
+        <a href="#contact" class="pricing-cta outline">Falar com a equipe</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section id="testimonials">
+  <div class="section-code-bg" data-code-bg="testimonials"></div>
+  <div class="section-orb left"></div>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Clientes</div>
+      <h2>O que dizem sobre a <span class="aqua">TURING</span></h2>
+      <p>Resultados reais de quem confiou na nossa engenharia.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <div class="testi-quote">"</div>
+        <p class="testi-text">A TURING entregou nosso sistema de agendamento em menos de 3 semanas. A qualidade do código e a atenção aos detalhes superaram todas as expectativas. Hoje temos 40% mais conversões.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">DR</div>
+          <div>
+            <div class="testi-name">Dr. Rafael Mendes</div>
+            <div class="testi-role">Diretor · Clínica Odontológica Mendes</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <div class="testi-quote">"</div>
+        <p class="testi-text">Precisávamos de uma plataforma SaaS do zero para escalar nosso negócio. A TURING entendeu o produto como se fossem sócios. Sistema no ar, clientes usando, revenue crescendo.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">AC</div>
+          <div>
+            <div class="testi-name">Ana Carolina Silva</div>
+            <div class="testi-role">CEO · StartupFlow</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-3">
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <div class="testi-quote">"</div>
+        <p class="testi-text">Nosso app ficou incrível — iOS e Android com uma UX que os clientes elogiam todo dia. O suporte pós-entrega é impecável. São parceiros de verdade, não só prestadores.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">LF</div>
+          <div>
+            <div class="testi-name">Lucas Ferreira</div>
+            <div class="testi-role">Fundador · DeliveryNow</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ══ -->
+<section id="contact">
+  <div class="section-code-bg" data-code-bg="contact"></div>
+  <div class="section-orb right"></div>
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <div class="tag">Vamos conversar</div>
+        <h2>Solicite seu <span class="aqua">Orçamento</span></h2>
+        <p>Preencha o formulário e nossa equipe retorna em até 24 horas com uma proposta personalizada para o seu projeto.</p>
+        <div class="contact-items">
+          <div class="contact-item">
+            <div class="contact-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="contact-item-label">WhatsApp</div>
+              <div class="contact-item-value">62 9901-1961</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="contact-item-label">E-mail</div>
+              <div class="contact-item-value">turingdevlv@gmail.com</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#64FFDA" stroke-width="1.5" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <div class="contact-item-label">Resposta em</div>
+              <div class="contact-item-value">até 24 horas úteis</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form reveal reveal-delay-2" id="contactForm">
+        <div id="formContent">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome</label>
+              <input type="text" id="fname" placeholder="Seu nome" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Empresa</label>
+              <input type="text" id="fcompany" placeholder="Nome da empresa" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>E-mail</label>
+              <input type="email" id="femail" placeholder="seu@email.com" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>WhatsApp</label>
+              <input type="tel" id="fphone" placeholder="(00) 00000-0000" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tipo de projeto</label>
+            <select id="ftype">
+              <option value="" disabled selected>Selecione o serviço</option>
+              <option>Site Institucional</option>
+              <option>Landing Page</option>
+              <option>Plataforma SaaS</option>
+              <option>Aplicativo Mobile</option>
+              <option>E-commerce</option>
+              <option>Dashboard / Sistema</option>
+              <option>Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Descreva seu projeto</label>
+            <textarea id="fmsg" placeholder="Conte um pouco sobre o que você precisa — funcionalidades, prazo, referências..."></textarea>
+          </div>
+          <button class="form-submit" id="formSubmit" onclick="submitForm()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Enviar mensagem
+          </button>
+        </div>
+        <div class="form-success" id="formSuccess">
+          <div class="form-success-icon">✓</div>
+          <h3>Mensagem enviada!</h3>
+          <p>Nossa equipe vai analisar seu projeto e retornar em até 24 horas com uma proposta personalizada.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section id="faq">
+  <div class="section-code-bg" data-code-bg="faq"></div>
+  <div class="section-orb left"></div>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="tag">Dúvidas</div>
+      <h2>Perguntas <span class="aqua">Frequentes</span></h2>
+      <p>Respondemos as principais dúvidas antes mesmo da primeira conversa.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item reveal reveal-delay-1">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Quanto tempo leva para entregar meu projeto?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Depende do escopo: sites institucionais ficam prontos em 7–14 dias, sistemas SaaS entre 30–60 dias, e apps mobile entre 45–90 dias. Definimos um prazo claro no contrato e cumprimos.</p></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-2">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Vocês entregam o código-fonte do projeto?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Sim. Todo o código é seu. Entregamos o repositório completo no GitHub com documentação técnica, e você tem liberdade total para continuar o desenvolvimento com qualquer time.</p></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-3">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Preciso ter ideia do design antes de entrar em contato?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Não precisa. Nossa fase de Discovery mapeia tudo: identidade visual, funcionalidades, público-alvo e referências. Você pode chegar só com a ideia — a gente estrutura o resto.</p></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-4">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Vocês oferecem manutenção após a entrega?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Sim. Todo projeto inclui suporte pós-entrega (30, 60 ou 90 dias conforme o plano). Também oferecemos contratos de manutenção mensal para quem quer uma parceria contínua.</p></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-5">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Quais formas de pagamento vocês aceitam?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Aceitamos PIX, transferência bancária e parcelamento em cartão. Trabalhamos com entrada + parcelas ao longo do desenvolvimento, garantindo segurança para ambos os lados.</p></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Trabalham com empresas fora do Brasil?</span>
+          <div class="faq-icon">+</div>
+        </button>
+        <div class="faq-a"><p>Sim. Atendemos clientes remotamente no Brasil e exterior. Toda comunicação é feita via WhatsApp, e-mail ou videochamada, com atualizações regulares do andamento.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section id="cta">
+  <div class="section-code-bg" data-code-bg="cta"></div>
+  <div class="cta-glow"></div>
+  <div class="container">
+    <div class="cta-inner reveal">
+      <div class="tag" style="display:block;text-align:center">Próximo passo</div>
+      <h2>Seu próximo sistema<br><span class="aqua">começa aqui.</span></h2>
+      <p>Tem uma ideia, um projeto ou um problema para resolver? A TURING transforma código em resultado. Vamos conversar.</p>
+      <div class="cta-btns">
+        <a href="https://wa.me/556299011961?text=Ol%C3%A1%2C%20eu%20vim%20pelo%20site%20de%20voc%C3%AAs%20e%20quero%20que%20voces%20fazam%20algo%20para%20mim" class="btn-primary">💬 Falar com especialista</a>
+        <a href="mailto:turingdevlv@gmail.com?subject=Solicita%C3%A7%C3%A3o%20de%20Or%C3%A7amento%20-%20TURING" class="btn-outline">✉ Enviar e-mail</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="uploads/turing-logo-transparent.png" alt="Turing">
+        <p>Código. Lógica. Impacto.<br>Desenvolvemos sistemas que escalam negócios com tecnologia de ponta.</p>
+        <div class="footer-social">
+          <a class="social-btn" href="https://www.instagram.com/turing_devlv/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Serviços</h4>
+        <ul>
+          <li><a href="#">Criação de Sites</a></li>
+          <li><a href="#">Desenvolvimento SaaS</a></li>
+          <li><a href="#">Apps Mobile</a></li>
+          <li><a href="#">Consultoria Técnica</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Sobre a TURING</a></li>
+          <li><a href="#">Portfólio</a></li>
+          <li><a href="#">Blog Técnico</a></li>
+          <li><a href="#">Carreiras</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <ul>
+          <li><a href="mailto:turingdevlv@gmail.com">turingdevlv@gmail.com</a></li>
+          <li><a href="https://wa.me/556299011961?text=Ol%C3%A1%2C%20eu%20vim%20pelo%20site%20de%20voc%C3%AAs%20e%20quero%20que%20voces%20fazam%20algo%20para%20mim">62 9901-1961</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 TURING Tecnologia. Todos os direitos reservados.</p>
+      <p class="aqua">Código. Lógica. Impacto.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Navbar scroll ── */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ── Mobile menu ── */
+const ham = document.getElementById('ham');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileClose = document.getElementById('mobileClose');
+ham.addEventListener('click', () => mobileMenu.classList.add('open'));
+mobileClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+document.querySelectorAll('.mm-link').forEach(l => {
+  l.addEventListener('click', () => mobileMenu.classList.remove('open'));
+});
+
+/* ── Scroll reveal ── */
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+
+/* ── Counter animation ── */
+function animateCounter(el, target, suffix, duration=1600) {
+  let start = null;
+  const step = (ts) => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = Math.floor(eased * target);
+    if (progress < 1) {
+      el.textContent = val + suffix;
+      requestAnimationFrame(step);
+    } else {
+      el.innerHTML = target + '<span>' + suffix + '</span>';
+    }
+  };
+  requestAnimationFrame(step);
+}
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      statsObserver.unobserve(e.target);
+      const nums = e.target.querySelectorAll('.stat-num');
+      nums.forEach(n => {
+        const text = n.dataset.val || n.textContent;
+        n.dataset.val = text;
+        const match = text.match(/^(\d+)(.*)$/);
+        if (match) animateCounter(n, parseInt(match[1]), match[2]);
+      });
+    }
+  });
+}, { threshold: 0.5 });
+const heroStats = document.querySelector('.hero-stats');
+if (heroStats) statsObserver.observe(heroStats);
+
+/* ── Typing effect on hero title ── */
+const highlight = document.querySelector('.hero-title .highlight');
+if (highlight) {
+  const words = ['escalam', 'transformam', 'aceleram', 'dominam'];
+  let wi = 0, ci = 0, deleting = false;
+  function type() {
+    const word = words[wi];
+    if (!deleting) {
+      highlight.textContent = word.slice(0, ++ci);
+      if (ci === word.length) { deleting = true; setTimeout(type, 1800); return; }
+    } else {
+      highlight.textContent = word.slice(0, --ci);
+      if (ci === 0) { deleting = false; wi = (wi + 1) % words.length; }
+    }
+    setTimeout(type, deleting ? 60 : 100);
+  }
+  setTimeout(type, 1200);
+}
+
+/* ── Circuit canvas background ── */
+/* ── Hero parallax ── */
+const heroSection = document.getElementById('hero');
+const heroVisual = document.querySelector('.hero-visual');
+const heroGlow = document.querySelector('.hero-glow');
+if (heroSection && heroVisual && window.innerWidth > 768) {
+  heroSection.addEventListener('mousemove', (event) => {
+    const rect = heroSection.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    heroVisual.style.transform = `translate3d(${x * 18}px, ${y * 14}px, 0)`;
+    if (heroGlow) heroGlow.style.transform = `translate3d(${x * 28}px, ${y * 20}px, 0)`;
+  });
+  heroSection.addEventListener('mouseleave', () => {
+    heroVisual.style.transform = '';
+    if (heroGlow) heroGlow.style.transform = '';
+  });
+}
+
+const canvas = document.getElementById('circuit-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, nodes = [], lines = [];
+
+function resize() {
+  W = canvas.width  = canvas.offsetWidth;
+  H = canvas.height = canvas.offsetHeight;
+  initCircuit();
+}
+
+function initCircuit() {
+  nodes = [];
+  lines = [];
+  const count = Math.floor((W * H) / 22000);
+  for (let i = 0; i < count; i++) {
+    nodes.push({ x: Math.random() * W, y: Math.random() * H });
+  }
+  // connect nearby nodes
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const d  = Math.sqrt(dx*dx + dy*dy);
+      if (d < 160) {
+        lines.push({ a: i, b: j, opacity: (1 - d/160) * 0.6 });
+      }
+    }
+  }
+}
+
+let t = 0;
+function drawCircuit() {
+  ctx.clearRect(0, 0, W, H);
+  t += 0.008;
+
+  // Draw lines
+  lines.forEach(l => {
+    const a = nodes[l.a], b = nodes[l.b];
+    const pulse = 0.3 + Math.sin(t + l.a * 0.5) * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(100,255,218,${l.opacity * pulse})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  nodes.forEach((n, i) => {
+    const pulse = 0.4 + Math.sin(t * 1.5 + i * 0.7) * 0.3;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(100,255,218,${pulse})`;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawCircuit);
+}
+
+window.addEventListener('resize', resize);
+resize();
+drawCircuit();
+
+/* ── Tech Marquee ── */
+const techs = ['React','Next.js','TypeScript','Node.js','PostgreSQL','React Native','Tailwind CSS','Docker','AWS','Stripe','GraphQL','Redis','Prisma','Expo','Vercel','Supabase','Firebase','MongoDB'];
+const marquee = document.getElementById('marquee');
+if (marquee) {
+  const html = [...techs, ...techs].map(t =>
+    `<div class="tech-item"><div class="tech-item-dot"></div><span>${t}</span></div>`
+  ).join('');
+  marquee.innerHTML = html;
+}
+
+/* ── FAQ accordion ── */
+(function initSectionCodeBackgrounds() {
+  const snippetsBySection = {
+    process: [
+      'const roadmap = ["discovery", "ux", "build", "deploy"];',
+      'if (scope.clear) sprint.start();',
+      'deploy({ ci: true, monitor: "24/7" });',
+      'review.push("performance", "security", "seo");'
+    ],
+    about: [
+      'const turing = { mission: "ship quality", stack: ["react","node","ts"] };',
+      'architecture.scale({ multiTenant: true, cloud: "aws" });',
+      'team.writeCode({ clean: true, tested: true });',
+      'productVision === engineeringPrecision;'
+    ],
+    pricing: [
+      'plan.pro.includes(["dashboard", "auth", "payments"]);',
+      'estimate({ scope, complexity, integrations });',
+      'roi = growth * performance * retention;',
+      'support.enable({ priority: true, sla: "custom" });'
+    ],
+    testimonials: [
+      'conversionRate += 0.40;',
+      'users.active = true; revenue.growing = true;',
+      'feedback.push("fast", "clean", "reliable");',
+      'partnership.mode = "long-term";'
+    ],
+    contact: [
+      'lead.capture({ source: "site", status: "new" });',
+      'message.route("sales@turing");',
+      'brief.required = ["goal", "deadline", "features"];',
+      'reply.time <= "24h";'
+    ],
+    faq: [
+      'delivery.site = "7-14 days";',
+      'codeOwnership = "100% client";',
+      'support.postLaunch = true;',
+      'payments.accepted = ["pix", "card", "bank transfer"];'
+    ],
+    cta: [
+      'idea.validate();',
+      'project.start({ nextStep: "call" });',
+      'shipSomethingGreat();',
+      'contact.open("whatsapp");'
+    ]
+  };
+
+  document.querySelectorAll('.section-code-bg').forEach((bg, bgIndex) => {
+    const key = bg.dataset.codeBg;
+    const snippets = snippetsBySection[key] || snippetsBySection.process;
+    const columns = window.innerWidth <= 768 ? 2 : window.innerWidth <= 1024 ? 4 : 6;
+    bg.innerHTML = '';
+
+    for (let i = 0; i < columns; i++) {
+      const col = document.createElement('div');
+      col.className = `code-column${i % 2 ? ' alt' : ''}`;
+      const lines = [];
+
+      for (let j = 0; j < 18; j++) {
+        const snippet = snippets[(i + j + bgIndex) % snippets.length];
+        const prefix = `${String(j + 1).padStart(2, '0')} `;
+        lines.push(prefix + snippet);
+      }
+
+      col.textContent = lines.join('\n');
+      col.style.animation = `codeDrift ${11 + i * 1.4}s ease-in-out ${-i * 0.7}s infinite`;
+      bg.appendChild(col);
+    }
+  });
+})();
+
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* ── EmailJS init ── */
+// Para ativar: cadastre em emailjs.com, crie um serviço Gmail e um template,
+// depois substitua as três constantes abaixo.
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account > API Keys
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services > Service ID
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates > Template ID
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+/* ── Form submit ── */
+async function submitForm() {
+  const name    = document.getElementById('fname').value.trim();
+  const company = document.getElementById('fcompany').value.trim();
+  const email   = document.getElementById('femail').value.trim();
+  const phone   = document.getElementById('fphone').value.trim();
+  const type    = document.getElementById('ftype').value;
+  const message = document.getElementById('fmsg').value.trim();
+
+  if (!name || !email || !type) {
+    ['fname','femail','ftype'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.style.borderColor = 'rgba(255,100,100,0.5)';
+        el.style.boxShadow   = '0 0 0 3px rgba(255,100,100,0.08)';
+        setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+      }
+    });
+    return;
+  }
+
+  const btn = document.getElementById('formSubmit');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="opacity:.7">Enviando...</span>';
+
+  // Se as chaves ainda não foram configuradas, usa mailto como fallback
+  if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+    const subject = encodeURIComponent(`Novo orçamento TURING - ${type}`);
+    const body = encodeURIComponent(
+      `Nome: ${name}\nEmpresa: ${company||'Não informado'}\nE-mail: ${email}\n` +
+      `WhatsApp: ${phone||'Não informado'}\nTipo de projeto: ${type}\n\nDescrição:\n${message||'Não informado'}`
+    );
+    window.open(`mailto:turingdevlv@gmail.com?subject=${subject}&body=${body}`);
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('formSuccess').style.display = 'block';
+    return;
+  }
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      from_name:    name,
+      company:      company  || 'Não informado',
+      from_email:   email,
+      phone:        phone    || 'Não informado',
+      project_type: type,
+      message:      message  || 'Não informado',
+      to_email:     'turingdevlv@gmail.com',
+    });
+    document.getElementById('formContent').style.display = 'none';
+    document.getElementById('formSuccess').style.display = 'block';
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar mensagem`;
+    alert('Erro ao enviar. Tente novamente ou entre em contato pelo WhatsApp.');
+  }
+}
+
+/* ── Flying </> tags ── */
+(function() {
+  const tags = document.querySelectorAll('.fly-tag');
+  const cfg = [
+    { phase: 0.0, speed: 0.012, amp: 20, rot:  5, depth: 10 },
+    { phase: 2.1, speed: 0.009, amp: 24, rot: -7, depth: 14 },
+    { phase: 1.0, speed: 0.011, amp: 17, rot:  6, depth:  7 },
+    { phase: 3.3, speed: 0.014, amp: 21, rot: -5, depth: 11 },
+  ];
+  let mx = 0, my = 0, cmx = 0, cmy = 0, t = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX - window.innerWidth  / 2) / (window.innerWidth  / 2);
+    my = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+  });
+
+  (function tick() {
+    t++;
+    cmx += (mx - cmx) * 0.045;
+    cmy += (my - cmy) * 0.045;
+    tags.forEach((tag, i) => {
+      const c = cfg[i];
+      const fy  = Math.sin(t * c.speed + c.phase) * c.amp;
+      const fr  = Math.sin(t * c.speed * 0.6 + c.phase) * c.rot;
+      const px  = cmx * c.depth;
+      const py  = cmy * c.depth + fy;
+      tag.style.transform = `translate(${px}px,${py}px) rotate(${fr}deg)`;
+    });
+    requestAnimationFrame(tick);
+  })();
+})();
+
+/* ── Matrix rain background ── */
+(function() {
+  const mc   = document.getElementById('matrix-bg');
+  const mctx = mc.getContext('2d');
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789ABCDEF<>/(){}[];=+-*#@!?\\|';
+  const fs = 13;
+  let cols, drops;
+
+  function resizeMatrix() {
+    mc.width  = window.innerWidth;
+    mc.height = window.innerHeight;
+    cols  = Math.floor(mc.width / fs);
+    drops = drops
+      ? (drops.length < cols ? [...drops, ...Array(cols - drops.length).fill(0).map(() => Math.random() * -(mc.height / fs))] : drops.slice(0, cols))
+      : Array(cols).fill(0).map(() => Math.random() * -(mc.height / fs));
+  }
+
+  function drawMatrix() {
+    mctx.fillStyle = 'rgba(10,25,47,0.05)';
+    mctx.fillRect(0, 0, mc.width, mc.height);
+    mctx.font = fs + 'px "Space Mono",monospace';
+    for (let i = 0; i < cols; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      const bright = Math.random() > 0.97;
+      mctx.fillStyle = bright ? '#ffffff' : '#64FFDA';
+      mctx.fillText(char, i * fs, drops[i] * fs);
+      if (drops[i] * fs > mc.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.45;
+    }
+  }
+
+  resizeMatrix();
+  window.addEventListener('resize', resizeMatrix);
+  setInterval(drawMatrix, 42);
+})();
+</script>
+</body>
+</html>
